@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "SpyUI"
+version = "0.0.1"
+dependencies = ["pywinauto"]
+classifiers = ["Operating System :: Microsoft :: Windows"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["lib"]
