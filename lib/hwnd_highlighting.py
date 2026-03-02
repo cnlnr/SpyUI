@@ -55,14 +55,14 @@ class UIHighlighter:
 if __name__ == "__main__":
 
     # 1. 目标句柄
-    target_hwnd = 1840054
+    target_hwnd = 395600
 
     # 2. 检查句柄是否还在
     if win32gui.IsWindow(target_hwnd):
         print(f">>> 发现目标窗口 [HWND: {target_hwnd}]")
 
         # 3. 初始化高亮器 (紫色，3像素粗)
-        highlighter = UIHighlighter(color="purple", thickness=3)
+        highlighter = UIHighlighter(color="purple", thickness=30)
 
         print(">>> 正在执行『物理焊接』挂载...")
         # 4. 执行挂载
