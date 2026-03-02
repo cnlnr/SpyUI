@@ -1,6 +1,5 @@
 import win32gui
 import win32api
-import time
 
 
 def get_hwnd_at_cursor(mode="normal"):
@@ -15,6 +14,7 @@ def get_hwnd_at_cursor(mode="normal"):
 
 
 if __name__ == "__main__":
+    import time
 
     while True:
         hwnd = get_hwnd_at_cursor()

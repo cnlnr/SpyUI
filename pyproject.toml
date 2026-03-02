@@ -9,5 +9,4 @@ dependencies = ["pywinauto"]
 classifiers = ["Operating System :: Microsoft :: Windows"]
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["lib"]
+where = ["lib"]   
