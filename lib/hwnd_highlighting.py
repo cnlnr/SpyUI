@@ -79,10 +79,9 @@ class UIHighlighter:
 
 
 if __name__ == "__main__":
-    import time
 
     # 1. 目标句柄
-    target_hwnd = 9112144
+    target_hwnd = 1840054
 
     # 2. 检查句柄是否还在
     if win32gui.IsWindow(target_hwnd):
