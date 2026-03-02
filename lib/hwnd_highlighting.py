@@ -5,77 +5,51 @@ import win32con
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
-
 class UIHighlighter:
     def __init__(self, color="red", thickness=2):
         self.color, self.thickness, self.root = color, thickness, None
 
     def start(self, target_hwnd):
-        """
-        极致优雅：修正『无效窗口句柄』错误的挂载版本
-        """
-        if self.root:
-            self.stop()
+        if self.root: self.stop()
 
-        # 1. 获取目标尺寸
         _, _, w, h = win32gui.GetClientRect(target_hwnd)
-        trans = '#abcdef'
-
+        
         self.root = tk.Tk()
         self.root.overrideredirect(True)
-        self.root.config(bg=trans)
-        self.root.attributes("-transparentcolor", trans)
+        
+        # 直接使用白色作为透明穿透基准色，不再定义变量
+        self.root.config(bg='white')
+        self.root.attributes("-transparentcolor", 'white')
 
-        # 【关键修正 1】：强制 Tkinter 立即创建底层原生窗口
-        # 这一步如果不做，下面的 GetParent 就会抓到无效句柄
         self.root.update_idletasks()
         self.root.update()
-
         self.root.geometry(f"{w}x{h}+0+0")
 
-        # 3. 绘制方框
-        tk.Canvas(self.root, bg=trans, highlightbackground=self.color,
-                  highlightthickness=self.thickness).pack(fill=tk.BOTH, expand=True)
+        # 绘制画布，背景设为白色以触发透明效果
+        tk.Canvas(self.root, bg='white', highlightbackground=self.color,
+                  highlightthickness=self.thickness, bd=0).pack(fill=tk.BOTH, expand=True)
 
-        # 4. 获取 Tkinter 窗口的真正原生句柄
-        # 使用 winfo_id() 拿到内部句柄，再转为整数
-        tk_internal_id = self.root.winfo_id()
-        tk_hwnd = ctypes.windll.user32.GetParent(tk_internal_id)
+        tk_hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id()) or self.root.winfo_id()
 
-        # 验证抓到的句柄是否有效
-        if not win32gui.IsWindow(tk_hwnd):
-            # 如果 GetParent 失败，尝试直接使用内部 ID
-            tk_hwnd = tk_internal_id
-
-        # 【核心：物理挂载】
+        # 物理挂载
         ctypes.windll.user32.SetParent(tk_hwnd, target_hwnd)
 
-        # 样式调整
-        style = ctypes.windll.user32.GetWindowLongW(
-            tk_hwnd, win32con.GWL_STYLE)
-        new_style = (style & ~win32con.WS_POPUP) | win32con.WS_CHILD
-        ctypes.windll.user32.SetWindowLongW(
-            tk_hwnd, win32con.GWL_STYLE, new_style)
-
-        # 5. 开启鼠标穿透
-        ex_style = ctypes.windll.user32.GetWindowLongW(
-            tk_hwnd, win32con.GWL_EXSTYLE)
+        # 样式与鼠标穿透
+        style = ctypes.windll.user32.GetWindowLongW(tk_hwnd, win32con.GWL_STYLE)
+        ctypes.windll.user32.SetWindowLongW(tk_hwnd, win32con.GWL_STYLE, (style & ~win32con.WS_POPUP) | win32con.WS_CHILD)
+        
+        ex_style = ctypes.windll.user32.GetWindowLongW(tk_hwnd, win32con.GWL_EXSTYLE)
         ctypes.windll.user32.SetWindowLongW(tk_hwnd, win32con.GWL_EXSTYLE,
                                             ex_style | win32con.WS_EX_LAYERED | win32con.WS_EX_TRANSPARENT)
 
-        # 6. 【关键修正 2】：使用 try 保护 SetWindowPos
-        try:
-            win32gui.SetWindowPos(tk_hwnd, win32con.HWND_TOP, 0, 0, w, h,
-                                  win32con.SWP_SHOWWINDOW | win32con.SWP_NOACTIVATE)
-        except Exception as e:
-            print(f"SetWindowPos 警告 (可忽略): {e}")
-
+        win32gui.SetWindowPos(tk_hwnd, win32con.HWND_TOP, 0, 0, w, h, win32con.SWP_SHOWWINDOW | win32con.SWP_NOACTIVATE)
         self.root.update()
 
     def stop(self):
         if self.root:
             self.root.destroy()
             self.root = None
+
 
 
 if __name__ == "__main__":

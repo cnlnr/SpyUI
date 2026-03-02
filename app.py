@@ -20,4 +20,4 @@ while True:
         # 更新上一个句柄为当前句柄
         previous_hwnd = current_hwnd
     
-    time.sleep(1)
+    time.sleep(0.3)
