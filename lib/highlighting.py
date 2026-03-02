@@ -1,60 +1,51 @@
-import win32gui
-import win32api
-import threading
-import time
+import tkinter as tk
 import ctypes
 
-# 开启 DPI 感知
+# 1. 强制声明 DPI 感知，确保 4K 或缩放屏下坐标 100% 精准
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 class UIHighlighter:
-    def __init__(self, color=(255, 0, 0)):
-        """
-        初始化：仅保留颜色设置
-        """
-        self.color = win32api.RGB(*color)
-        self._stop_event = threading.Event()
-        self._thread = None
+    def __init__(self, color="red", thickness=1):
+        # 保留初始化配置：颜色和粗细
+        self.color, self.thickness, self.root = color, thickness, None
 
-    def _drawing_loop(self, hwnd):
-        # 获取资源
-        brush = win32gui.CreateSolidBrush(self.color)
-        hdc = win32gui.GetWindowDC(0)
+    def start(self, rect):
+        """开启高亮标记"""
+        if self.root: self.stop()
         
-        try:
-            while not self._stop_event.is_set():
-                if not win32gui.IsWindow(hwnd):
-                    break
-                
-                # 获取坐标并直接绘制（API 默认就是 1 像素，不加循环）
-                rect = win32gui.GetWindowRect(hwnd)
-                win32gui.FrameRect(hdc, rect, brush)
-                
-                # 刷新频率设为 0.1s
-                time.sleep(0.1) 
-        finally:
-            # 清理资源
-            win32gui.ReleaseDC(0, hdc)
-            win32gui.DeleteObject(brush)
-            win32gui.InvalidateRect(0, None, True)
+        l, t, r, b = rect
+        w, h, trans = r - l, b - t, '#abcdef' # 使用特定色键实现透明
 
-    def start(self, hwnd):
-        self.stop() 
-        self._stop_event.clear()
-        self._thread = threading.Thread(target=self._drawing_loop, args=(hwnd,), daemon=True)
-        self._thread.start()
+        self.root = tk.Tk()
+        # 置顶、无边框、设置透明色
+        self.root.overrideredirect(True)
+        self.root.attributes("-topmost", True, "-transparentcolor", trans)
+        self.root.geometry(f"{w}x{h}+{l}+{t}")
+
+        # 【核心优化】：利用 Canvas 边框实现颜色和厚度
+        # 这种方式在 thickness=1 时绝对闭合，且代码量极少
+        tk.Canvas(self.root, bg=trans, 
+                  highlightbackground=self.color, # 这里应用你的自定义颜色
+                  highlightthickness=self.thickness).pack(fill=tk.BOTH, expand=True)
+
+        # 开启鼠标穿透 (WS_EX_LAYERED | WS_EX_TRANSPARENT)
+        hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+        style = ctypes.windll.user32.GetWindowLongW(hwnd, -20)
+        ctypes.windll.user32.SetWindowLongW(hwnd, -20, style | 0x80000 | 0x20)
+        self.root.update()
 
     def stop(self):
-        self._stop_event.set()
+        """停止并销毁高亮标记"""
+        if self.root:
+            self.root.destroy()
+            self.root = None
 
 if __name__ == "__main__":
-    # 初始化一个绿色高亮器
-    highlighter = UIHighlighter(color=(0, 255, 0))
-
-    # 标记目标
-    target_hwnd = 1380888
-    highlighter.start(target_hwnd)
-    print(f"窗口 {target_hwnd} 已锁定。")
-
-    input("按回车停止...")
-    highlighter.stop()
+    import time
+    # 测试：绿色、1像素
+    h = UIHighlighter(color="green", thickness=3)
+    h.start((300, 300, 700, 600))
+    
+    print("高亮已开启，5秒后自动关闭...")
+    time.sleep(5)
+    h.stop()
