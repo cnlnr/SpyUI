@@ -3,17 +3,17 @@ import time
 import win32gui
 import highlighting
 
-highlighter = highlighting.UIHighlighter(color="purple", thickness=3)
+highlighter = highlighting.HighlightOverlay(color="green", thickness=2)
 
 previous_hwnd = None
 while True:
-    time.sleep(0.5)  # 减少 CPU 占用
+    time.sleep(0.5)
     # 获取当前鼠标位置的窗口句柄
-    current_hwnd = mouse_hwnd.get_hwnd_at_cursor()
+    hwnd = mouse_hwnd.get_hwnd_at_cursor()
     # 获取窗口标题
-    window_title = win32gui.GetWindowText(current_hwnd)
-    print(f"句柄：{current_hwnd}, 标题：{window_title}")
+    window_title = win32gui.GetWindowText(hwnd)
+    # 获取窗口位置
+    rect = win32gui.GetWindowRect(hwnd)
+    print(f"句柄：{hwnd}, 标题：{window_title}")
 
-    rect = win32gui.GetWindowRect(current_hwnd)
-    print(f"窗口坐标: {rect}")
-    highlighter.start(rect)
+    highlighter.draw_rect(rect[0], rect[1], rect[2], rect[3])
