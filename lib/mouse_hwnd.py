@@ -2,7 +2,7 @@ import win32gui
 import win32api
 
 
-def get_hwnd_at_cursor(mode="normal"):
+def get_hwnd(mode="normal"):
     """
     SpyUI 核心探测引擎：抓取成功返回 HWND (int)，失败返回 None
     """
@@ -17,6 +17,6 @@ if __name__ == "__main__":
     import time
 
     while True:
-        hwnd = get_hwnd_at_cursor()
+        hwnd = get_hwnd()
         print(f"句柄：{hwnd}, 标题：{win32gui.GetWindowText(hwnd)}")
         time.sleep(1)

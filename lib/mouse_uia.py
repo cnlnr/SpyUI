@@ -7,7 +7,7 @@ uia_module = client.GetModule("UIAutomationCore.dll")
 from comtypes.gen.UIAutomationClient import CUIAutomation, IUIAutomationElement
 uia = client.CreateObject(CUIAutomation, interface=uia_module.IUIAutomation)
 
-def get_element_runtime_id_at_mouse():
+def get_uia_id():
     """获取鼠标当前位置元素的 RuntimeId (唯一标识)"""
     # 1. 获取鼠标坐标
     point = wintypes.POINT()
