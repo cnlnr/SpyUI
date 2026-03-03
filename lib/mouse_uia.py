@@ -2,10 +2,15 @@ import ctypes
 from ctypes import wintypes
 from comtypes import client
 
-# --- 保持你原有的初始化逻辑 ---
-uia_module = client.GetModule("UIAutomationCore.dll")
-from comtypes.gen.UIAutomationClient import CUIAutomation, IUIAutomationElement
-uia = client.CreateObject(CUIAutomation, interface=uia_module.IUIAutomation)
+
+# 初始化 UIA 核心对象
+_uia_module = client.GetModule("UIAutomationCore.dll")
+_uia = client.CreateObject(_uia_module.CUIAutomation, interface=_uia_module.IUIAutomation)
+
+def ElementFromPoint(pt):
+    """封装原生 UIA 方法供外部调用"""
+    return _uia.ElementFromPoint(pt)
+
 
 def get_uia_id():
     """获取鼠标当前位置元素的 RuntimeId (唯一标识)"""
@@ -34,7 +39,7 @@ if __name__ == "__main__":
             # 1. 获取鼠标指向的元素
             pt = ctypes.wintypes.POINT()
             ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
-            el = uia.ElementFromPoint(pt)
+            el = ElementFromPoint(pt)
             
             # 2. 唯一标识去重并打印属性
             uid = el.GetRuntimeId()
