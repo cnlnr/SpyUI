@@ -7,9 +7,11 @@ highlighter = highlighting.HighlightOverlay(color="green", thickness=2)
 
 previous_hwnd = None
 while True:
-    time.sleep(0.5)
+    time.sleep(0.1)
     # 获取当前鼠标位置的窗口句柄
     hwnd = mouse_hwnd.get_hwnd_at_cursor()
+    if not hwnd:
+        continue
     # 获取窗口标题
     window_title = win32gui.GetWindowText(hwnd)
     # 获取窗口位置
