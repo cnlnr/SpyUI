@@ -1,7 +1,7 @@
 import mouse_uia
 import ctypes
 import time
-import highlighting
+import ui.highlighting as highlighting
 
 # 初始化红框
 highlighter = highlighting.HighlightOverlay(color="green", thickness=2)
