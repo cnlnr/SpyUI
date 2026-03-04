@@ -2,8 +2,10 @@ import mouse_hwnd
 import time
 import win32gui
 import highlighting
+import ui.hwnd
 
 highlighter = highlighting.HighlightOverlay(color="green", thickness=2)
+ui = ui.hwnd.GlimpseUI()
 
 previous_hwnd = None
 while True:
@@ -21,9 +23,8 @@ while True:
     # 2. 逻辑应用：唯一标识去重判断
     if hwnd and hwnd != previous_hwnd:
         # 3. 只有 ID 变了才执行以下属性获取和打印
-        window_title = win32gui.GetWindowText(hwnd)
 
-        print(f"句柄：{hwnd}, 标题：{window_title}")
+        ui.update(hwnd)  # 更新UI显示
 
         previous_hwnd = hwnd  # 更新缓存
     elif not hwnd:
